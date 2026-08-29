@@ -1,0 +1,7 @@
+@media (max-width:520px){
+  .rod{padding:10px;}
+  .gauge-row{
+    flex-direction:column;
+    align-items:stretch;
+  }
+}
