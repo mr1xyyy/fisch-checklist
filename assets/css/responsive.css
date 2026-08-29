@@ -1,7 +1,13 @@
-@media (max-width:520px){
+﻿@media (max-width:520px){
   .rod{padding:10px;}
+  .rod-image-link{
+    width:46px;
+    height:46px;
+    min-width:46px;
+  }
   .gauge-row{
     flex-direction:column;
     align-items:stretch;
   }
 }
+

@@ -1,31 +1,35 @@
 const { RODS, UPCOMING } = window.FischData;
 const { loadProgress, saveProgress } = window.FischServices;
-const { bindSearch, confirmModal, renderMainList, renderUpcomingList, updateGauge } = window.FischUi;
+const { bindSearch, confirmModal, renderMainList, updateGauge } = window.FischUi;
 
 let state = {};
 
 const mainList = document.getElementById('mainList');
-const upcomingList = document.getElementById('upcomingList');
 const searchBox = document.getElementById('searchBox');
 const checkAllBtn = document.getElementById('checkAllBtn');
 const resetBtn = document.getElementById('resetBtn');
+const allRods = [...RODS, ...UPCOMING].sort(([firstName], [secondName]) => {
+  return firstName.localeCompare(secondName);
+});
+
+async function updateRodState(name, checked, row){
+  state[name] = checked;
+  row.classList.toggle('done', checked);
+  await saveProgress(state);
+  updateGauge(allRods, state);
+}
 
 function refreshMainList(){
-  renderMainList(mainList, RODS, state, async (name, checked, row) => {
-    state[name] = checked;
-    row.classList.toggle('done', checked);
-    await saveProgress(state);
-    updateGauge(RODS, state);
-  });
+  renderMainList(mainList, allRods, state, updateRodState);
 }
 
 async function checkAll(){
-  RODS.forEach(([name]) => {
+  allRods.forEach(([name]) => {
     state[name] = true;
   });
   await saveProgress(state);
   refreshMainList();
-  updateGauge(RODS, state);
+  updateGauge(allRods, state);
 }
 
 async function resetAll(){
@@ -34,14 +38,13 @@ async function resetAll(){
   state = {};
   await saveProgress(state);
   refreshMainList();
-  updateGauge(RODS, state);
+  updateGauge(allRods, state);
 }
 
 async function init(){
   state = await loadProgress();
   refreshMainList();
-  renderUpcomingList(upcomingList, UPCOMING);
-  updateGauge(RODS, state);
+  updateGauge(allRods, state);
 
   bindSearch(searchBox, mainList);
   checkAllBtn.addEventListener('click', checkAll);

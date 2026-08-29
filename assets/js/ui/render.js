@@ -10,7 +10,7 @@ window.FischUi = window.FischUi || {};
 window.FischUi.renderMainList = function renderMainList(mount, rods, state, onToggle){
   mount.innerHTML = '';
   let currentLetter = '';
-  const { wikiUrl } = window.FischUtils;
+  const { imageUrl, wikiUrl } = window.FischUtils;
 
   rods.forEach(([name, info]) => {
     const letter = name[0].toUpperCase();
@@ -25,31 +25,19 @@ window.FischUi.renderMainList = function renderMainList(mount, rods, state, onTo
     row.dataset.name = name.toLowerCase();
     row.innerHTML = `
       <input type="checkbox" class="chk" ${state[name] ? 'checked' : ''}>
+      <a class="rod-image-link" href="${wikiUrl(name)}" target="_blank" rel="noopener" aria-label="Open ${name} on Fischipedia">
+        <img class="rod-image" src="${imageUrl(name)}" alt="${name}">
+      </a>
       <div class="rbody">
         <div class="rname">${name}</div>
         <div class="rinfo">${info}</div>
-        <a class="rlink" href="${wikiUrl(name)}" target="_blank" rel="noopener">View image and wiki page -></a>
+        <a class="rlink" href="${wikiUrl(name)}" target="_blank" rel="noopener">Open on Fischipedia -></a>
       </div>`;
 
     row.querySelector('.chk').addEventListener('change', event => {
       onToggle(name, event.target.checked, row);
     });
 
-    mount.appendChild(row);
-  });
-};
-
-window.FischUi.renderUpcomingList = function renderUpcomingList(mount, upcoming){
-  mount.innerHTML = '';
-
-  upcoming.forEach(([name, note]) => {
-    const row = document.createElement('div');
-    row.className = 'rod upcoming';
-    row.innerHTML = `
-      <div class="chk placeholder"></div>
-      <div class="rbody">
-        <div class="rname">${name} <span class="stage-pill">${note}</span></div>
-      </div>`;
     mount.appendChild(row);
   });
 };
