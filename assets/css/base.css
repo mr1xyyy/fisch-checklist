@@ -25,6 +25,21 @@ body{
   padding:28px 16px 80px;
 }
 
+.particles-layer{
+  position:fixed;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+}
+
+.particles-layer canvas{
+  display:block;
+}
+
+.particles-layer.particles-hidden{
+  display:none;
+}
+
 body::before{
   content:"";
   position:fixed;

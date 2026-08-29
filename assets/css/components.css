@@ -2,7 +2,7 @@
   display:flex;
   align-items:center;
   gap:16px;
-  margin-top:18px;
+  margin-top:0;
   flex-wrap:wrap;
 }
 
@@ -66,7 +66,7 @@
 .controls{
   display:flex;
   gap:10px;
-  margin:20px 0 8px;
+  margin:20px 0 0;
   flex-wrap:wrap;
 }
 
@@ -101,6 +101,59 @@ button.util{
 
 button.util:hover{
   border-color:var(--brass);
+  color:var(--brass);
+}
+
+.particles-toggle{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  color:var(--foam-dim);
+  font-size:11px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  cursor:pointer;
+  user-select:none;
+}
+
+.particles-toggle input{
+  position:absolute;
+  opacity:0;
+  pointer-events:none;
+}
+
+.toggle-track{
+  position:relative;
+  width:44px;
+  height:24px;
+  border:1px solid var(--panel-edge);
+  border-radius:999px;
+  background:#061620;
+  transition:background .18s, border-color .18s;
+}
+
+.toggle-thumb{
+  position:absolute;
+  top:3px;
+  left:3px;
+  width:16px;
+  height:16px;
+  border-radius:50%;
+  background:var(--foam-dim);
+  transition:transform .18s, background .18s;
+}
+
+.particles-toggle input:checked + .toggle-track{
+  border-color:var(--brass);
+  background:rgba(211,162,74,.18);
+}
+
+.particles-toggle input:checked + .toggle-track .toggle-thumb{
+  transform:translateX(20px);
+  background:var(--brass);
+}
+
+.particles-toggle:hover{
   color:var(--brass);
 }
 

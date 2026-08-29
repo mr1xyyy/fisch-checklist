@@ -1,4 +1,15 @@
-﻿@media (max-width:520px){
+@media (max-width:520px){
+  body{padding-top:12px;}
+  .sticky-top{
+    padding-top:10px;
+    margin-bottom:18px;
+  }
+  .header-top{
+    align-items:flex-start;
+  }
+  .particles-toggle span:first-child{
+    display:none;
+  }
   .rod{padding:10px;}
   .rod-image-link{
     width:46px;
