@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Masterline Log — Fisch Rod Checklist</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bitter:wght@500;700;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  :root{
+    --deep:#061620;
+    --deep2:#0a2233;
+    --panel:#0d2a3c;
+    --panel-edge:#123a52;
+    --line-glow:#1b7a72;
+    --brass:#d3a24a;
+    --brass-dim:#8a6a30;
+    --foam:#cfe8e6;
+    --foam-dim:#7fa3a0;
+    --danger:#c9694f;
+    --done:#5cbf8f;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1200px 700px at 15% -10%, #0e3346 0%, transparent 60%),
+      radial-gradient(900px 600px at 110% 20%, #0c2c3d 0%, transparent 55%),
+      linear-gradient(180deg, var(--deep) 0%, #030c13 100%);
+    color:var(--foam);
+    font-family:'IBM Plex Mono', monospace;
+    min-height:100vh;
+    padding:28px 16px 80px;
+  }
+
+  /* faint depth-line rulers, like a sounding chart */
+  body::before{
+    content:"";
+    position:fixed; inset:0; pointer-events:none; z-index:0;
+    background-image: repeating-linear-gradient(180deg, rgba(207,232,230,0.035) 0px, rgba(207,232,230,0.035) 1px, transparent 1px, transparent 64px);
+  }
+
+  .wrap{max-width:900px; margin:0 auto; position:relative; z-index:1;}
+
+  header{
+    display:flex; flex-direction:column; gap:6px;
+    border-bottom:1px solid var(--panel-edge);
+    padding-bottom:20px; margin-bottom:22px;
+  }
+  .eyebrow{
+    font-size:11px; letter-spacing:.22em; text-transform:uppercase;
+    color:var(--brass-dim); font-weight:600;
+  }
+  h1{
+    font-family:'Bitter', serif; font-weight:900;
+    font-size:clamp(28px,5vw,42px); margin:2px 0 4px;
+    color:var(--foam);
+    letter-spacing:-.01em;
+  }
+  h1 span{color:var(--brass);}
+  .sub{color:var(--foam-dim); font-size:13.5px; max-width:60ch; line-height:1.5;}
+
+  /* Signature: reel/control-bar gauge */
+  .gauge-row{
+    display:flex; align-items:center; gap:16px; margin-top:18px; flex-wrap:wrap;
+  }
+  .gauge{
+    flex:1; min-width:220px;
+    height:34px; border-radius:4px;
+    background:#04141e;
+    border:1px solid var(--panel-edge);
+    position:relative; overflow:hidden;
+  }
+  .gauge-fill{
+    height:100%; width:0%;
+    background:linear-gradient(90deg,#2f8f7a,#5cbf8f 60%,#e4c878);
+    transition:width .4s ease;
+    position:relative;
+  }
+  .gauge-fill::after{
+    content:""; position:absolute; inset:0;
+    background:repeating-linear-gradient(90deg, rgba(0,0,0,0.12) 0 2px, transparent 2px 8px);
+  }
+  .gauge-label{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-size:12px; letter-spacing:.08em; color:#052018; font-weight:600; mix-blend-mode:screen;
+  }
+  .stat{
+    font-family:'Bitter',serif; font-weight:900; font-size:20px; color:var(--brass); white-space:nowrap;
+  }
+  .stat small{display:block; font-family:'IBM Plex Mono',monospace; font-weight:500; font-size:10px; letter-spacing:.1em; color:var(--foam-dim); text-transform:uppercase;}
+
+  /* controls */
+  .controls{
+    display:flex; gap:10px; margin:20px 0 8px; flex-wrap:wrap;
+  }
+  input[type="text"]{
+    flex:1; min-width:180px;
+    background:var(--deep2); border:1px solid var(--panel-edge); color:var(--foam);
+    padding:10px 12px; border-radius:4px; font-family:inherit; font-size:13px;
+    outline:none;
+  }
+  input[type="text"]:focus{border-color:var(--brass-dim);}
+  input[type="text"]::placeholder{color:var(--foam-dim);}
+  button.util{
+    background:transparent; border:1px solid var(--panel-edge); color:var(--foam-dim);
+    padding:10px 14px; border-radius:4px; font-family:inherit; font-size:12px; cursor:pointer;
+    letter-spacing:.04em; transition:all .15s;
+  }
+  button.util:hover{border-color:var(--brass); color:var(--brass);}
+
+  /* section headers = depth markers */
+  .depth-marker{
+    display:flex; align-items:center; gap:12px;
+    margin:34px 0 12px;
+  }
+  .depth-marker .tick{
+    font-family:'Bitter',serif; font-weight:700; font-size:13px; color:var(--brass);
+    border:1px solid var(--brass-dim); border-radius:3px; padding:3px 8px;
+    white-space:nowrap;
+  }
+  .depth-marker .rule{flex:1; height:1px; background:linear-gradient(90deg,var(--panel-edge),transparent);}
+
+  .list{display:flex; flex-direction:column; gap:8px;}
+
+  .rod{
+    display:flex; align-items:flex-start; gap:12px;
+    background:var(--panel);
+    border:1px solid var(--panel-edge);
+    border-left:3px solid var(--panel-edge);
+    border-radius:6px;
+    padding:12px 14px;
+    transition:border-color .15s, background .15s, opacity .15s;
+  }
+  .rod:hover{border-color:#1c4a63;}
+  .rod.done{
+    border-left-color:var(--done);
+    background:linear-gradient(90deg, rgba(92,191,143,0.08), var(--panel) 40%);
+  }
+  .rod.done .rname{color:var(--done); text-decoration:line-through; text-decoration-color:rgba(92,191,143,0.5);}
+  .rod.hidden{display:none;}
+
+  .chk{
+    appearance:none; -webkit-appearance:none;
+    width:20px; height:20px; min-width:20px; margin-top:2px;
+    border:2px solid var(--brass-dim); border-radius:3px;
+    background:#04141e; cursor:pointer; position:relative;
+    transition:.15s;
+  }
+  .chk:checked{background:var(--done); border-color:var(--done);}
+  .chk:checked::after{
+    content:"✓"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    color:#04141e; font-size:13px; font-weight:700;
+  }
+
+  .rbody{flex:1; min-width:0;}
+  .rname{
+    font-family:'Bitter',serif; font-weight:700; font-size:15.5px; color:var(--foam);
+    margin-bottom:3px;
+  }
+  .rinfo{font-size:12px; color:var(--foam-dim); line-height:1.45;}
+  .rlink{
+    display:inline-flex; align-items:center; gap:4px;
+    margin-top:6px; font-size:11px; color:var(--brass); text-decoration:none;
+    border-bottom:1px dotted var(--brass-dim); padding-bottom:1px;
+  }
+  .rlink:hover{color:#f0d38a;}
+
+  .stage-pill{
+    font-size:9.5px; letter-spacing:.06em; text-transform:uppercase;
+    padding:2px 6px; border-radius:20px; border:1px solid var(--panel-edge); color:var(--foam-dim);
+    white-space:nowrap; margin-left:6px;
+  }
+
+  footer{
+    margin-top:50px; padding-top:16px; border-top:1px solid var(--panel-edge);
+    font-size:11px; color:var(--foam-dim); text-align:center; line-height:1.7;
+  }
+  footer a{color:var(--brass); text-decoration:none;}
+
+  ::selection{background:var(--brass); color:#04141e;}
+
+  @media (max-width:520px){
+    .rod{padding:10px;}
+    .gauge-row{flex-direction:column; align-items:stretch;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Fisch · Roblox — Fishing Log</div>
+    <h1>Masterline <span>Rod</span> Checklist</h1>
+    <p class="sub">Masterline Rod olish uchun kerak bo'lgan barcha rodlarni belgilab boring. Progress avtomatik saqlanadi — sahifani yopib qayta kirsangiz ham joyida turadi.</p>
+
+    <div class="gauge-row">
+      <div class="gauge">
+        <div class="gauge-fill" id="gaugeFill"></div>
+        <div class="gauge-label" id="gaugeLabel">0 / 0</div>
+      </div>
+      <div class="stat" id="pctStat">0%<small>bajarildi</small></div>
+    </div>
+  </header>
+
+  <div class="controls">
+    <input type="text" id="searchBox" placeholder="🔍 Rod nomini qidirish...">
+    <button class="util" id="checkAllBtn">Hammasini belgilash</button>
+    <button class="util" id="resetBtn">Tozalash</button>
+  </div>
+
+  <div id="mainList"></div>
+
+  <div class="depth-marker"><div class="tick">HALI O'YINGA QO'SHILMAGAN</div><div class="rule"></div></div>
+  <p class="sub" style="margin-bottom:12px;">Quyidagilar kelajakdagi update'larda qo'shiladi — hozircha olib bo'lmaydi, shu sabab checkbox yo'q.</p>
+  <div class="list" id="upcomingList"></div>
+
+  <footer>
+    Manba: Fisch Wiki (fisch.fandom.com) — har bir rod nomi bosilsa rasmi va to'liq ma'lumoti wiki'da ochiladi.<br>
+    Progress faqat shu brauzerda, shu qurilmada saqlanadi.
+  </footer>
+</div>
+
+<script>
+const RODS = [
+["Abyssal Specter Rod","Atlantis: Ethereal Abyss Trial, Level 170"],
+["Anchor & Chain","Tidefall: Ancient Archives'da crafting, Level 25"],
+["Apollo's Sunshot","Atlantis (Olympus): 100% Apollo's Layer Bestiary + Solar Chorus paytida Helios Sunray tutish"],
+["Arctic Rod","Northern Expedition — Northern Summit"],
+["Auric Rod","Ocean: Sunken chest'lardan kichik ehtimol bilan"],
+["Aurora Rod","Vertigo: Aurora paytida paydo bo'ladi"],
+["Avalanche Rod","Northern Expedition: Frigid Cavern"],
+["Azure of Lagoon","Lost Jungle: 85% Bestiary"],
+["Bellona's Waraxe","Atlantis (Olympus): 100% Bellona's Layer Bestiary + 3 Guard Quest"],
+["Blade of Glorp","Roslit Bay: Glorp quest'i, Level 888"],
+["Blazebringer Rod","Roslit Volcano: 80% Bestiary"],
+["Bloomspire","Living Garden"],
+["Boreal Rod","Northern Expedition: Boreal Pines"],
+["Brine-infused Rod","Desolate Deep'dagi Brine Pool"],
+["Carbon Rod","Moosewood"],
+["Carrot Rod","Carrot Garden (Mushgrove Swamp'dagi rabbit hole): 100% Bestiary"],
+["Celestial Rod","Ancient Archives'da crafting, Level 350"],
+["Cerulean Fang Rod","Luminescent Cavern: Starfall paytida, Level 400"],
+["Challengers Rod","Roslit Bay's Mariana's Veil: Challenger's Deep Layer"],
+["Champions Rod","Atlantis"],
+["Cinder Block Rod","Ocean: Roslit Bay yonida, Laboratory tepasida"],
+["Coral Rod","Coral Bastion: 50% Bestiary"],
+["Cryolash Rod","Northern Expedition: Boreal Pines — 100% Bestiary, Level 650"],
+["Crystallised Rod","Northern Expedition: Overgrowth Caves — 2 o'yinchi 2 glass diamond ushlaydi"],
+["Daybreaker Rod","Scoria Reach: 50% Bestiary, Level 50"],
+["Dead Man's Rod","Ocean: Ancient Archives'da crafting, Level 1000"],
+["Decayed Rod","Toxic Grove"],
+["Depthseeker Rod","Atlantis"],
+["Destiny Rod","Ocean: 350+ fish topish + Caleia NPC (The Arch)"],
+["Dreambreaker","Cultist Lair: The Restless One quest'i, Level 750"],
+["Duskwire Rod","Vertigo - Crystal Cove: Hollow NPC quest'i, Level 275"],
+["Eidolon Rod","Cultist Lair, Level 350"],
+["Elder Mossripper Rod","Lost Jungle: Ancient Archives'da crafting, Level 350"],
+["Ethereal Prism Rod","Roslit Bay's Mariana's Veil: Calm Zone — 100% Bestiary, Level 250"],
+["Evil Pitchfork","Crimson Cavern: crafting, Level 500 (Crimson King materiallari)"],
+["Fabulous Rod","Roslit Bay's Mariana's Veil: Fabulous Deity quest'i, Level 1000"],
+["Fallen Rod","Tidefall"],
+["Fast Rod","Moosewood"],
+["Firefly Rod","Castaway Cliffs: 40% Bestiary"],
+["Flimsy Rod","Moosewood"],
+["Fortune Rod","Roslit Bay"],
+["Free Spirit Rod","Mineshaft"],
+["Friendly Rod","Moosewood"],
+["Frog Rod","Mushgrove Swamp: 50% Bestiary"],
+["Fungal Rod","Mushgrove Swamp: Agaric quest'i"],
+["Gardenkeeper Rod","Living Garden: crafting, Level 300"],
+["Great Dreamer Rod","Cursed Isle: 50% Bestiary"],
+["Great Rod of Oscar","Ocean: Dead Man Joe quest'i (Forsaken Shores), Level 250"],
+["Hades Soul Scythe","Atlantis (Olympus): 100% Hades Layer Bestiary + wisp'lar"],
+["Heavens Rod","Northern Expedition: Glacial Grotto"],
+["Ice Warpers Rod","Northern Expedition: Frigid Cavern"],
+["Igneous Rupturer","Scoria Reach: Scoria Guard quest'i, Level 500"],
+["Kings Rod","Statue of Sovereignty / Keepers Altar"],
+["Kraken Rod","Atlantis: Kraken Pool (Clock Puzzle'dan keyin)"],
+["Leviathan's Fang Rod","Roslit Bay's Mariana's Veil: Veil of the Forsaken"],
+["Long Rod","Moosewood"],
+["Lucid Rod","Cultist Lair: crafting, Level 50 (Tessael NPC quest'i)"],
+["Lucky Rod","Moosewood"],
+["Luminescent Oath","Luminescent Cavern: 100% Bestiary, Level 500"],
+["Magma Rod","Roslit Volcano: Orc quest'i"],
+["Magnet Rod","Terrapin Island"],
+["Merlin Staff","Sunstone Island: Merlin NPC'da crafting"],
+["Midas Rod","Ocean: Travelling Merchant"],
+["Mythical Rod","Ocean: Travelling Merchant"],
+["Nico's Yarncaster Rod","Vertigo - Crystal Cove: Crazy Cat Lady quest'i"],
+["NoLife Rod","Level 500"],
+["Nocturnal Rod","Vertigo"],
+["Olympian Godbreaker","Atlantis (Olympus): 100% Olympus Fissure Bestiary"],
+["Onirifalx","Vertigo - The Depths: Nick quest'i, Level 1000"],
+["Phoenix Rod","Ancient Isle"],
+["Pinions Aria","Vertigo - Crystal Cove: Mysterious Songstress quest'i, Level 424"],
+["Plaguereaver","Toxic Grove: Plague Reaper quest'i, Level 650"],
+["Plastic Rod","Moosewood"],
+["Poseidon Rod","Atlantis: Poseidon's Trial, Level 100"],
+["Poseidon Lance","Atlantis (Olympus): 100% Poseidon's Layer Bestiary + 4 Atlantean/King's Blessing Fish"],
+["Precision Rod","Ancient Archives'da crafting, Level 5"],
+["Rainbow Cluster Rod","Castaway Cliffs: Rainbow paytida"],
+["Random Rod","Regionless: orollarda tasodifiy vaqtda"],
+["Rapid Rod","Roslit Bay"],
+["Reinforced Rod","Desolate Deep"],
+["Requiem Rod","Sunken Reliquary: crafting, Level 1000"],
+["Resourceful Rod","Ancient Archives'da crafting, Level 50"],
+["Riptide Rod","Ancient Archives'da crafting, Level 30"],
+["Rod of the Depths","The Depths: Hexed + Abyssal Enchant Relic bilan maze'ni yakunlash"],
+["Rod of the Eternal King","Ancient Archives'da crafting, Level 400"],
+["Rod of the Exalted One","Regionless: 7 xil mutatsiyali enchant relic (Mushgrove Swamp false wall)"],
+["Rod of the Forgotten Fang","Ancient Archives'da crafting, Level 700"],
+["Rod of the Zenith","Roslit Bay's Mariana's Veil: Abyssal Zenith Layer"],
+["Ruinous Oath","Crimson Cavern: 100% Normal & SS Bestiary, Level 750"],
+["Scarlet Spincaster","Ancient Archives'da crafting, Level 100"],
+["Scurvy Rod","Forsaken Shores"],
+["Seasons Rod","Ancient Archives'da crafting, Level 40"],
+["Seraphic Rod","Level 1000"],
+["Spirit of the Forest","Everturn Forest: Thalor Virewood quest'i"],
+["Spiritbinder","Ancient Archives'da crafting, Level 500"],
+["Splitbranch Twig","Everturn Forest"],
+["Steady Rod","Roslit Bay"],
+["Stone Rod","Ancient Isle"],
+["Summit Rod","Northern Expedition: Cryogenic Canal"],
+["Sunken Rod","Ocean: treasure chest ochish"],
+["Sweet-Stinger","Nectar Den: 100% Bestiary"],
+["Tempest Rod","Atlantis"],
+["Thalassar Ruin","Tidefall: 3 essensiya + Sunken/Cosmic/Exalted relic'lar + Trident Rod"],
+["Boom Ball","Desolate Deep: Sea Mine'dan 25 marta o'lish, 26-marta rod xonasiga teleport"],
+["Lost Rod","Ancient Archives'da crafting, Level 100"],
+["Tidemourner","Ancient Archives'da crafting, Level 200"],
+["Toxic Spire Rod","Ancient Archives'da crafting, Level 90 (Lost Temple puzzle #2)"],
+["Toxinburst Rod","Ancient Archives'da crafting, Level 150 (Toxic Grove quest'lari)"],
+["Training Rod","Moosewood"],
+["Tranquility Rod","Regionless: Sprout quest'i"],
+["Treasure Rod","Treasure Island: Traveler's Whistle orqali"],
+["Trident Rod","Desolate Deep: 100% Bestiary + 5 Enchant Relic"],
+["Tryhard Rod","Roslit Volcano: RoRed quest'i, Level 999"],
+["Verdant Oath","Living Garden: 100% Toxic Grove + Living Garden + Nectar Den Bestiary, Level 1000"],
+["Verdant Shear Rod","Lost Jungle: 75% Bestiary"],
+["Vineweaver Rod","Ancient Archives'da crafting"],
+["Volcanic Rod","Roslit Bay's Mariana's Veil: Volcanic Vents Layer"],
+["Voyager Rod","Ancient Archives'da crafting, Level 80"],
+["Wicked Fang Rod","Crimson Cavern: Eclipse paytida, Level 300"],
+["Wildflower Rod","Terrapin Island"],
+["Wind Elemental","Northern Expedition: Glacial Grotto — WindMaster quest'i, Level 800"],
+["Wisdom Rod","Ancient Archives'da crafting, Level 80"],
+["Zeus Rod","Atlantis: Zeus Trial, Level 150"],
+["Zeus Thundermaul","Atlantis (Olympus): 100% Zeus Layer Bestiary + to'liq zaryadlangan gears/batteries"],
+];
+
+const UPCOMING = [
+["Marrow Rod","Drylands Update"],
+["Terrotrapper","Drylands Update"],
+["Luminous Rod","The Deep Update"],
+["Titanium Rod","The Deep Update"],
+["Scalding Hook","The Deep Update"],
+["Cusk Purger","The Deep Update"],
+["Meteoric Rod","Astral Update"],
+["Rod of the Singularity","Astral Update"],
+["Scavenger Rod","Astral Update"],
+["Stellarwave Melody","Astral Update"],
+];
+
+const STORAGE_KEY = 'fisch_masterline_progress';
+let state = {};
+
+function wikiUrl(name){
+  const q = encodeURIComponent(name);
+  return `https://fisch.fandom.com/wiki/Special:Search?query=${q}`;
+}
+
+async function loadState(){
+  try{
+    const res = await window.storage.get(STORAGE_KEY, false);
+    if(res && res.value){ state = JSON.parse(res.value); }
+  }catch(e){ state = {}; }
+}
+async function saveState(){
+  try{ await window.storage.set(STORAGE_KEY, JSON.stringify(state), false); }
+  catch(e){ console.error('storage error', e); }
+}
+
+function renderMain(){
+  const mount = document.getElementById('mainList');
+  mount.innerHTML = '';
+  let currentLetter = '';
+  RODS.forEach(([name, info])=>{
+    const letter = name[0].toUpperCase();
+    if(letter !== currentLetter){
+      currentLetter = letter;
+      const marker = document.createElement('div');
+      marker.className = 'depth-marker';
+      marker.innerHTML = `<div class="tick">${letter}</div><div class="rule"></div>`;
+      mount.appendChild(marker);
+    }
+    const row = document.createElement('div');
+    row.className = 'rod' + (state[name] ? ' done' : '');
+    row.dataset.name = name.toLowerCase();
+    row.innerHTML = `
+      <input type="checkbox" class="chk" ${state[name] ? 'checked' : ''}>
+      <div class="rbody">
+        <div class="rname">${name}</div>
+        <div class="rinfo">${info}</div>
+        <a class="rlink" href="${wikiUrl(name)}" target="_blank" rel="noopener">🖼 Rasm va wiki sahifasini ko'rish →</a>
+      </div>`;
+    const chk = row.querySelector('.chk');
+    chk.addEventListener('change', ()=>{
+      state[name] = chk.checked;
+      row.classList.toggle('done', chk.checked);
+      saveState();
+      updateGauge();
+    });
+    mount.appendChild(row);
+  });
+}
+
+function renderUpcoming(){
+  const mount = document.getElementById('upcomingList');
+  mount.innerHTML = '';
+  UPCOMING.forEach(([name, note])=>{
+    const row = document.createElement('div');
+    row.className = 'rod';
+    row.style.opacity = '0.6';
+    row.innerHTML = `
+      <div class="chk" style="border-style:dashed; cursor:default;"></div>
+      <div class="rbody">
+        <div class="rname">${name} <span class="stage-pill">${note}</span></div>
+      </div>`;
+    mount.appendChild(row);
+  });
+}
+
+function updateGauge(){
+  const total = RODS.length;
+  const done = Object.values(state).filter(Boolean).length;
+  const pct = total ? Math.round((done/total)*100) : 0;
+  document.getElementById('gaugeFill').style.width = pct + '%';
+  document.getElementById('gaugeLabel').textContent = `${done} / ${total}`;
+  document.getElementById('pctStat').innerHTML = `${pct}%<small>bajarildi</small>`;
+}
+
+document.getElementById('searchBox').addEventListener('input', (e)=>{
+  const q = e.target.value.trim().toLowerCase();
+  document.querySelectorAll('#mainList .rod').forEach(row=>{
+    row.classList.toggle('hidden', q && !row.dataset.name.includes(q));
+  });
+  document.querySelectorAll('#mainList .depth-marker').forEach(m=>{
+    m.style.display = q ? 'none' : 'flex';
+  });
+});
+
+document.getElementById('checkAllBtn').addEventListener('click', ()=>{
+  RODS.forEach(([name])=> state[name] = true);
+  saveState();
+  renderMain();
+  updateGauge();
+});
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  if(!confirm("Haqiqatan ham barcha belgilarni tozalaysizmi?")) return;
+  state = {};
+  saveState();
+  renderMain();
+  updateGauge();
+});
+
+(async function init(){
+  await loadState();
+  renderMain();
+  renderUpcoming();
+  updateGauge();
+})();
+</script>
+</body>
+</html>
